@@ -1,4 +1,16 @@
 function checkCashRegister(price, cash, cid) {
+    var denom = [
+        { name: "ONE HUNDRED", val: 100.0 },
+        { name: "TWENTY", val: 20.0 },
+        { name: "TEN", val: 10.0 },
+        { name: "FIVE", val: 5.0 },
+        { name: "ONE", val: 1.0 },
+        { name: "QUARTER", val: 0.25 },
+        { name: "DIME", val: 0.1 },
+        { name: "NICKEL", val: 0.05 },
+        { name: "PENNY", val: 0.01 }
+    ];
+
     // FILL THE REGISTER
     let register = {};
     for (let el of cid) {
@@ -9,14 +21,12 @@ function checkCashRegister(price, cash, cid) {
     let totalInRegister = Object.values(register).reduce((a, b) => a + b, 0)
     let remainder = cash - price;
 
-    // console.log('REMAINDER: ', remainder);
-    // console.log('IN REGISTER: ', totalInRegister);
 
+    let result = { status: null, change: [] };
+    
     // CHECK IF REGISTER HAS ENOUGH
-    let result = {};
     if (totalInRegister < remainder) {
         result.status = 'INSUFFICIENT_FUNDS';
-        result.change = [];
         return result;
     }
 
@@ -28,81 +38,32 @@ function checkCashRegister(price, cash, cid) {
 
     let change = {};
 
-    function updateRegister(unit, amount) {
-        register[unit] -= amount;
-        addToChange(unit, amount)
-        updateRemainder(amount)
-    }
-    function addToChange(unit, amount) {
-        change[unit] = (change[unit] || 0) + (amount * 100);
-    }
-    function updateRemainder(amount) {
-        remainder -= amount;
-
-    }
-
     while (remainder > 0) {
         remainder = remainder.toFixed(2);
 
-        if (remainder >= 100) {
-            if (register['ONE HUNDRED']) {
-                updateRegister('ONE HUNDRED', 100)
-                continue;
-            }
-        }
-        if (remainder >= 20) {
-            if (register['TWENTY']) {
-                updateRegister('TWENTY', 20)
-                continue;
-            }
-        }
-        if (remainder >= 10) {
-            if (register['TEN']) {
-                updateRegister('TEN', 10)
-                continue;
-            }
-        }
-        if (remainder >= 5) {
-            if (register['FIVE']) {
-                updateRegister('FIVE', 5)
-                continue;
-            }
-        }
-        if (remainder >= 1) {
-            if (register['ONE']) {
-                updateRegister('ONE', 1)
-                continue;
-            }
-        }
-        if (remainder >= 0.25) {
-            if (register['QUARTER']) {
-                updateRegister('QUARTER', 0.25)
-                continue;
-            }
-        }
-        if (remainder >= 0.1) {
-            if (register['DIME']) {
-                updateRegister('DIME', 0.1)
-                continue;
-            }
-        }
-        if (remainder >= 0.05) {
-            if (register['NICKEL']) {
-                updateRegister('NICKEL', 0.05)
-                continue;
-            }
-        }
-        if (remainder >= 0.01) {
-            if (register['PENNY']) {
-                updateRegister('PENNY', 0.01)
-                continue;
-            }
-        }
+        let insufficient = false;
 
-        result.status = 'INSUFFICIENT_FUNDS';
-        result.change = [];
-        return result;
+        // todo
+        for (let coin of denom) {
+            if (remainder >= coin.val) {
+                if (register[coin.name]) {
+                    register[coin.name] -= coin.val;
+                    change[coin.name] = (change[coin.name] || 0) + (coin.val * 100);
+                    remainder -= coin.val;
 
+                    break;
+                } else {
+                    if (coin.name === 'PENNY') {
+                        insufficient = true;
+                    }
+                }
+            }
+        }
+        if (insufficient) {
+            result.status = 'INSUFFICIENT_FUNDS';
+            result.change = [];
+            return result;
+        }
     }
 
     for (let unit in change) {
