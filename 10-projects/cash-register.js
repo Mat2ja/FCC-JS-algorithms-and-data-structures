@@ -43,7 +43,6 @@ function checkCashRegister(price, cash, cid) {
 
         let insufficient = false;
 
-        // todo
         for (let coin of denom) {
             if (remainder >= coin.val) {
                 if (register[coin.name]) {
